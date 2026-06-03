@@ -43,26 +43,35 @@ export default function NotificationBell() {
     navigate("/discuss");
   };
 
-  const handleNotificationClick = (msg) => {
+  const handleNotificationClick = (clickedMsg) => {
+    // 1. On marque la notification comme lue localement (enlève le cercle vert)
+    setMessages(prevMessages => 
+      prevMessages.map(msg => 
+        msg.id === clickedMsg.id ? { ...msg, unread: false } : msg
+      )
+    );
+
+    // 2. On décrémente le compteur global si le message n'était pas encore lu
+    if (clickedMsg.unread) {
+      setCount(prevCount => Math.max(0, prevCount - 1));
+    }
+
     setIsOpen(false);
     setShowAll(false);
     // On navigue vers la page globale des messages en passant l'ID caché
-    navigate("/discuss", { state: { targetChannelId: msg.target_id } });
+    navigate("/discuss", { state: { targetChannelId: clickedMsg.target_id } });
   };
 
-  // 👈 NOUVEAU : Filtrage des messages en fonction de l'onglet actif
   const getFilteredMessages = () => {
     if (tab === "chats") {
       return messages.filter(msg => msg.avatar_type !== 'channel');
     } else if (tab === "canaux") {
       return messages.filter(msg => msg.avatar_type === 'channel');
     }
-    return messages; // tab === "notifications" (affiche tout)
+    return messages; 
   };
 
-  // On applique le filtre d'abord
   const filteredMessagesList = getFilteredMessages();
-  // Puis on limite l'affichage
   const visibleMessages = showAll ? filteredMessagesList : filteredMessagesList.slice(0, 5);
 
   return (
@@ -81,10 +90,10 @@ export default function NotificationBell() {
       )}
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-[450px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-[#e9eaf4] overflow-hidden z-50 animate-in slide-in-from-top-2">
+        <div className="fixed sm:absolute right-2 sm:right-0 left-2 sm:left-auto mt-3 sm:mt-3 top-auto w-auto sm:w-[450px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-[#e9eaf4] overflow-hidden z-50 animate-in slide-in-from-top-2">
+
           <div className="flex items-center justify-between px-5 pt-4 border-b border-[#e9eaf4] bg-[#fafafe]">
             <div className="flex gap-6">
-              {/* Changement onClick : on réinitialise showAll quand on change d'onglet */}
               {["Notifications", "Chats", "Canaux"].map(t => (
                 <button 
                   key={t} 
@@ -122,16 +131,23 @@ export default function NotificationBell() {
                           {msg.sender ? msg.sender.charAt(0).toUpperCase() : "?"}
                         </div>
                       )}
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                      {/* J'ai lié le petit point vert de connexion à l'état non-lu pour que tout disparaisse proprement, si tu veux le garder fixe, tu peux enlever la condition {msg.unread && ...} ici */}
+                      {msg.unread && (
+                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
-                        <p className="text-[15px] font-bold text-[#1f2557] truncate pr-2">{msg.sender}</p>
+                        <p className={`text-[15px] truncate pr-2 ${msg.unread ? 'font-bold text-[#1f2557]' : 'font-medium text-slate-600'}`}>
+                          {msg.sender}
+                        </p>
                         <p className="text-xs font-semibold text-slate-500 whitespace-nowrap mt-0.5">{msg.time}</p>
                       </div>
                       <div className="flex justify-between items-center mt-1">
-                        <p className="text-sm text-slate-600 truncate pr-4">{msg.text}</p>
+                        <p className={`text-sm truncate pr-4 ${msg.unread ? 'text-slate-600' : 'text-slate-400'}`}>
+                          {msg.text}
+                        </p>
                         {msg.unread && (
                           <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0">
                             <span className="text-white text-[10px] font-bold">1</span>
@@ -142,7 +158,6 @@ export default function NotificationBell() {
                   </div>
                 ))}
                 
-                {/* Bouton Afficher Tout ajusté pour la liste filtrée */}
                 {!showAll && filteredMessagesList.length > 5 && (
                   <button 
                     onClick={() => setShowAll(true)}

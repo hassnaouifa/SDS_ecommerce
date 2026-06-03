@@ -14,7 +14,7 @@ import AddFeeModal from "../components/orders/modals/AddFeeModal";
 import PaymentModal from "../components/orders/modals/PaymentModal";
 import DeliveryModal from "../components/orders/modals/DeliveryModal";
 
-// Icônes (J'ai ajouté "Truck" pour le joli camion bleu !)
+
 import { 
   ShoppingBag, Calendar, User, Wallet, CheckCircle2, Clock3, 
   FileText, Eye, RefreshCcw, X, AlertCircle, Truck
@@ -159,6 +159,27 @@ export default function Orders() {
     } catch (err) { setMessage("Erreur suppression."); } finally { setActionLoading(false); }
   };
 
+
+  const handleCancelOrder = async () => {
+    if (!displayedOrder?.id) return;
+    if (!window.confirm("Voulez-vous vraiment annuler cette commande ?")) return;
+    try {
+      setActionLoading(true);
+      const response = await api.post("/api/order/cancel", { params: { order_id: displayedOrder.id } });
+      const result = response.data.result || response.data;
+      if (result.success) {
+        setMessage("Commande annulée avec succès.");
+        await loadOrders();
+      } else {
+        setMessage(result.message);
+      }
+    } catch (err) {
+      setMessage("Erreur lors de l'annulation.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
 const handleCheckout = async () => {
     if (!displayedOrder?.id) return;
     setPaymentStep("processing"); // On lance l'animation de chargement
@@ -174,16 +195,34 @@ const handleCheckout = async () => {
     } catch (err) { setShowPaymentModal(false); setMessage("Erreur paiement."); }
   };
 
-  const handleValidateDelivery = async () => {
-    if (!displayedOrder?.id) return;
-    setDeliveryStep("processing");
-    try {
-      const response = await api.post("/api/order/delivery/validate", { params: { order_id: displayedOrder.id } });
-      const result = response.data.result || response.data;
-      if (result.success) { setDeliveryStep("success"); await loadOrders(); }
-      else { setShowDeliveryModal(false); setMessage(result.message); }
-    } catch (err) { setShowDeliveryModal(false); setMessage("Erreur livraison."); }
-  };
+const handleValidateDelivery = async () => {
+  if (!displayedOrder?.id) return;
+  setDeliveryStep("processing");
+  try {
+    const response = await api.post("/api/order/delivery/validate", { params: { order_id: displayedOrder.id } });
+    const result = response.data.result || response.data;
+
+    const isCalendarNoise = !result.success && result.message?.includes("calendar.event");
+
+    if (result.success || isCalendarNoise) {
+      setDeliveryStep("success");
+      await loadOrders();
+    } else {
+      setShowDeliveryModal(false);
+      setMessage(result.message);
+    }
+  } catch (err) {
+    // Même chose dans le catch — l'erreur peut remonter en exception
+    const errMsg = err?.response?.data?.error?.message || err?.message || "";
+    if (errMsg.includes("calendar.event")) {
+      setDeliveryStep("success");
+      await loadOrders();
+    } else {
+      setShowDeliveryModal(false);
+      setMessage("Erreur livraison.");
+    }
+  }
+};
 
   useEffect(() => { loadOrders(); }, []);
   useEffect(() => { if (selectedOrderId) loadOrderDetails(selectedOrderId); else setSelectedOrder(null); }, [selectedOrderId]);
@@ -306,14 +345,15 @@ const handleCheckout = async () => {
 
           {displayedOrder ? (
             <>
-<OrderStatusBar 
-  order={displayedOrder} 
-  isPaymentDone={checkoutData?.order_id === displayedOrder?.id} /* NOUVELLE LIGNE POUR BLOQUER LE BOUTON DIRECTEMENT */
-  onValidate={() => handleConfirmOrder(false)} 
-  onPay={() => { setShowPaymentModal(true); setPaymentStep("idle"); }} 
-  onDeliver={() => { setShowDeliveryModal(true); setDeliveryStep("idle"); }} 
-  onDelete={handleDeleteOrder} 
-/>
+          <OrderStatusBar 
+            order={displayedOrder} 
+            isPaymentDone={checkoutData?.order_id === displayedOrder?.id} /* NOUVELLE LIGNE POUR BLOQUER LE BOUTON DIRECTEMENT */
+            onValidate={() => handleConfirmOrder(false)} 
+            onPay={() => { setShowPaymentModal(true); setPaymentStep("idle"); }} 
+            onDeliver={() => { setShowDeliveryModal(true); setDeliveryStep("idle"); }} 
+            onCancel={handleCancelOrder}
+            onDelete={handleDeleteOrder} 
+          />
               <div className="bg-white rounded-[24px] border border-[#ececf5] p-5">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div>

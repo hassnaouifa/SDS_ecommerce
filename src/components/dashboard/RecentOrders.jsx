@@ -16,8 +16,8 @@ export default function RecentOrders({ orders }) {
         </button>
       </div>
       
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[700px]">
+      <div className="w-full">
+        <table className="w-full">
           <thead>
             <tr className="text-left text-slate-400 text-sm border-b border-[#ececf5]">
               <th className="pb-3 font-medium">Référence</th>

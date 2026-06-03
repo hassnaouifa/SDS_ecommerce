@@ -1,6 +1,22 @@
 import { useEffect, useState } from "react";
-import { X, Mail, Phone, HelpCircle } from "lucide-react";
+import { X, Mail, Phone, HelpCircle, Camera } from "lucide-react";
 import api from "../../api/axios";
+
+// Convertit le HTML d'Odoo en texte brut pour l'affichage dans le <textarea>
+const formatHtmlToText = (html) => {
+  if (!html) return "";
+  let text = html.replace(/<br\s*[\/]?>/gi, "\n"); 
+  text = text.replace(/<\/div>\s*<div[^>]*>/gi, "\n"); 
+  text = text.replace(/<\/p>\s*<p[^>]*>/gi, "\n"); 
+  text = text.replace(/<[^>]+>/g, ""); 
+  return text.trim();
+};
+
+// Convertit le texte brut du <textarea> en HTML avant l'envoi vers Odoo
+const formatTextToHtml = (text) => {
+  if (!text) return "";
+  return text.split('\n').map(line => `<div>${line}</div>`).join('');
+};
 
 export default function ProfileModal({ isOpen, onClose, userData }) {
   const [activeTab, setActiveTab] = useState("preferences");
@@ -15,6 +31,8 @@ export default function ProfileModal({ isOpen, onClose, userData }) {
     lang: "fr_FR",
     signature: "Smart Digital Systems",
     notification_type: "email",
+    image: null, 
+    avatar_url: userData?.avatar_url || "", 
     available_langs: [
       { code: "fr_FR", name: "Français" },
       { code: "en_US", name: "English" },
@@ -28,6 +46,7 @@ export default function ProfileModal({ isOpen, onClose, userData }) {
         ...prev,
         name: userData?.user_name || prev.name,
         email: userData?.user_email || prev.email,
+        avatar_url: userData?.avatar_url || prev.avatar_url,
       }));
       fetchProfileData();
     }
@@ -39,7 +58,12 @@ export default function ProfileModal({ isOpen, onClose, userData }) {
       const response = await api.post("/api/profile/get", {});
       const result = response.data.result;
       if (result && result.success) {
-        setProfileData(result.data); 
+        setProfileData(prev => ({ 
+          ...prev, 
+          ...result.data,
+          // Application du nettoyage HTML ici
+          signature: formatHtmlToText(result.data.signature) 
+        })); 
       }
     } catch (error) {
       console.error("Erreur chargement profil", error);
@@ -53,16 +77,35 @@ export default function ProfileModal({ isOpen, onClose, userData }) {
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileData(prev => ({ 
+          ...prev, 
+          image: reader.result, 
+          avatar_url: reader.result 
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage({ text: "", type: "" });
     try {
       const response = await api.post("/api/profile/update", {
         params: {
+          name: profileData.name,
+          email: profileData.email,
           lang: profileData.lang,
-          signature: profileData.signature,
+          // Remise en forme HTML avant la sauvegarde
+          signature: formatTextToHtml(profileData.signature), 
           notification_type: profileData.notification_type,
-          phone: profileData.phone
+          phone: profileData.phone,
+          image: profileData.image
         }
       });
       
@@ -99,24 +142,54 @@ export default function ProfileModal({ isOpen, onClose, userData }) {
           </div>
         ) : (
           <div className="overflow-y-auto flex-1">
-            <div className="px-8 py-6 flex items-center gap-6">
-              {userData?.avatar_url ? (
-                <img
-                  src={`/odoo-api${userData.avatar_url}`}
-                  alt="Avatar"
-                  className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-white outline outline-1 outline-[#e9eaf4]"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#4f46ff] to-[#6a5cff] text-white flex items-center justify-center text-4xl font-bold shadow-sm">
-                  {profileData.name ? profileData.name.charAt(0).toUpperCase() : "A"}
-                </div>
-              )}
+            <div className="px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
               
-              <div className="space-y-2">
-                <h3 className="text-3xl font-bold text-[#1f2557]">{profileData.name}</h3>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-slate-500 font-medium text-sm">
-                  <div className="flex items-center gap-2"><Mail size={16} />{profileData.email}</div>
-                  <div className="flex items-center gap-2"><Phone size={16} />{profileData.phone || "Non renseigné"}</div>
+              <label className="relative cursor-pointer group shrink-0">
+                <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                {profileData.avatar_url ? (
+                  <img
+                    src={profileData.avatar_url.startsWith('data:') ? profileData.avatar_url : `/odoo-api${profileData.avatar_url}`}
+                    alt="Avatar"
+                    className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-white outline outline-1 outline-[#e9eaf4] group-hover:opacity-75 transition-opacity"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#4f46ff] to-[#6a5cff] text-white flex items-center justify-center text-4xl font-bold shadow-sm group-hover:opacity-80 transition-opacity">
+                    {profileData.name ? profileData.name.charAt(0).toUpperCase() : "A"}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold">
+                  <Camera size={20} className="mb-1" />
+                  Modifier
+                </div>
+              </label>
+              
+              <div className="space-y-3 w-full">
+                <input 
+                  type="text" 
+                  name="name" 
+                  value={profileData.name} 
+                  onChange={handleChange} 
+                  className="w-full text-3xl font-bold text-[#1f2557] bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-[#4f46ff] outline-none transition-colors px-1 -ml-1"
+                  placeholder="Votre nom"
+                />
+                
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-slate-500 font-medium text-sm w-full">
+                  <div className="flex items-center gap-2 flex-1 max-w-[250px]">
+                    <Mail size={16} className="text-slate-400" />
+                    <input 
+                      type="email" 
+                      name="email" 
+                      value={profileData.email} 
+                      onChange={handleChange} 
+                      className="w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#4f46ff] outline-none px-1 -ml-1 text-slate-600"
+                      placeholder="Votre e-mail"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Phone size={16} className="text-slate-400" />
+                    <span className="px-1">{profileData.phone || "Non renseigné"}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -138,14 +211,7 @@ export default function ProfileModal({ isOpen, onClose, userData }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-bold text-[#1f2557]">Langue <HelpCircle size={14} className="text-slate-400" /></label>
-                    <select name="lang" value={profileData.lang} onChange={handleChange} className="w-full h-11 bg-[#fafafe] border border-[#e9eaf4] rounded-xl px-4 text-sm font-medium text-slate-700 outline-none focus:border-[#4f46ff] focus:ring-2 focus:ring-[#4f46ff]/20 cursor-pointer">
-                      {profileData.available_langs.map(l => (
-                        <option key={l.code} value={l.code}>{l.name}</option>
-                      ))}
-                    </select>
-                  </div>
+
 
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-[#1f2557]">Signature e-mail</label>

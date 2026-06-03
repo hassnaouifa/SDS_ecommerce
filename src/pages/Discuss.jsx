@@ -4,7 +4,7 @@ import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import ChatRightPanel from '../components/chat/ChatRightPanel';
 import StarredMessagesView from '../components/chat/StarredMessagesView';
-import InboxView from '../components/chat/InboxView'; // 👈 1. Ajoute cet import
+import InboxView from '../components/chat/InboxView';
 
 const THEME_COLORS = [
   { name: 'Bleu', bgClass: 'bg-blue-600', textClass: 'text-blue-600' },
@@ -14,14 +14,15 @@ const THEME_COLORS = [
   { name: 'Orange', bgClass: 'bg-orange-500', textClass: 'text-orange-500' },
 ];
 
-
 const Discuss = () => {
   const [activeChannel, setActiveChannel] = useState(null);
   const [showRightPanel, setShowRightPanel] = useState(false);
-  const [activeView, setActiveView] = useState('inbox'); // 👈 2. Met 'inbox' par défaut au lieu de 'chat'
-  
+  const [activeView, setActiveView] = useState('inbox');
   const [chatColor, setChatColor] = useState(THEME_COLORS[0]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Sur mobile : true = on voit la sidebar, false = on voit le chat
+  const [showMobileSidebar, setShowMobileSidebar] = useState(true);
 
   const location = useLocation();
   const targetChannelId = location.state?.targetChannelId;
@@ -45,41 +46,84 @@ const Discuss = () => {
 
   const handleSelectChat = (channel) => {
     setActiveChannel(channel);
-    setActiveView('chat'); // Quand on clique sur un chat, on passe en mode 'chat'
+    setActiveView('chat');
     setShowRightPanel(false);
     setSearchQuery('');
+    setShowMobileSidebar(false); // Sur mobile : cacher la sidebar, montrer le chat
+  };
+
+  const handleShowInbox = () => {
+    setActiveView('inbox');
+    setActiveChannel(null);
+    setShowRightPanel(false);
+    setShowMobileSidebar(false); // Afficher la vue inbox
+  };
+
+  const handleShowStarred = () => {
+    setActiveView('starred');
+    setActiveChannel(null);
+    setShowRightPanel(false);
+    setShowMobileSidebar(false);
+  };
+
+  const handleBackToSidebar = () => {
+    setShowMobileSidebar(true);
   };
 
   return (
     <div className="flex h-screen w-full bg-[#F8F9FA] font-sans text-gray-800 overflow-hidden">
-      
-      <ChatSidebar 
-        activeView={activeView} // 👈 On passe la vue active pour styliser le bouton Inbox
-        activeChannel={activeChannel} 
-        onSelectChat={handleSelectChat} 
-        onShowStarred={() => { setActiveView('starred'); setActiveChannel(null); setShowRightPanel(false); }}
-        onShowInbox={() => { setActiveView('inbox'); setActiveChannel(null); setShowRightPanel(false); }} // 👈 Nouvelle action
-        targetChannelId={targetChannelId}
-      />
-      
-      {/* L'AFFICHAGE CONDITIONNEL */}
-      {activeView === 'inbox' && <InboxView />}
-      {activeView === 'starred' && <StarredMessagesView />}
-      {activeView === 'chat' && (
-        <ChatWindow 
-          activeChannel={activeChannel} 
-          onToggleRightPanel={() => setShowRightPanel(!showRightPanel)} 
-          themeColor={chatColor}     
-          searchQuery={searchQuery}  
+
+      {/* SIDEBAR — visible desktop toujours, mobile seulement si showMobileSidebar */}
+      <div className={`
+        ${showMobileSidebar ? 'flex' : 'hidden'} md:flex
+        w-full md:w-auto flex-shrink-0
+      `}>
+        <ChatSidebar
+          activeView={activeView}
+          activeChannel={activeChannel}
+          onSelectChat={handleSelectChat}
+          onShowStarred={handleShowStarred}
+          onShowInbox={handleShowInbox}
+          targetChannelId={targetChannelId}
         />
-      )}
-      
-      {showRightPanel && activeView === 'chat' && (
-        <ChatRightPanel 
-          activeChannel={activeChannel} onClose={() => setShowRightPanel(false)}
-          currentColor={chatColor} onColorChange={handleColorChange} onSearch={setSearchQuery}             
-        />
-      )}
+      </div>
+
+      {/* CONTENU PRINCIPAL — caché sur mobile si sidebar visible */}
+      <div className={`
+        ${showMobileSidebar ? 'hidden' : 'flex'} md:flex
+        flex-1 min-w-0 flex-col
+      `}>
+        {/* Bouton retour mobile */}
+        <button
+          onClick={handleBackToSidebar}
+          className="md:hidden flex items-center gap-2 px-4 py-3 bg-white border-b border-gray-100 text-[#4f46ff] font-semibold text-sm"
+        >
+          ← Retour aux conversations
+        </button>
+
+        <div className="flex flex-1 min-h-0">
+          {activeView === 'inbox' && <InboxView />}
+          {activeView === 'starred' && <StarredMessagesView />}
+          {activeView === 'chat' && (
+            <ChatWindow
+              activeChannel={activeChannel}
+              onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
+              themeColor={chatColor}
+              searchQuery={searchQuery}
+            />
+          )}
+
+          {showRightPanel && activeView === 'chat' && (
+            <ChatRightPanel
+              activeChannel={activeChannel}
+              onClose={() => setShowRightPanel(false)}
+              currentColor={chatColor}
+              onColorChange={handleColorChange}
+              onSearch={setSearchQuery}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

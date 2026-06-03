@@ -110,19 +110,7 @@ setFormData({
                 <p className="text-sm font-semibold text-[#10174f]">{data?.customer || "—"}</p>
               </div>
 
-              {/* Champ Référence */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 ml-1">Référence interne</label>
-                <div className="relative">
-                   <input 
-                    type="text" 
-                    placeholder="Ex: REF/2026/001"
-                    className="w-full h-12 pl-4 pr-4 rounded-xl border border-[#ececf5] bg-[#fafafe] text-sm text-[#10174f] font-medium outline-none focus:border-amber-500 focus:bg-white transition-all"
-                    value={formData.reference} 
-                    onChange={e => setFormData({...formData, reference: e.target.value})} 
-                  />
-                </div>
-              </div>
+
 
               {/* Champ Date d'échéance */}
               <div className="space-y-2">

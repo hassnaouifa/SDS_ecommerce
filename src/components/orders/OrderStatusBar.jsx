@@ -1,23 +1,21 @@
 import React from "react";
-import { CheckCircle2, CreditCard, Download, Truck, Trash2, ChevronRight } from "lucide-react";
+import { CheckCircle2, CreditCard, Download, Truck, Trash2, ChevronRight, XCircle } from "lucide-react";
 
-// J'ai rajouté "isPaymentDone" dans les paramètres ici :
-export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay, onDeliver, onDelete }) {
+export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay, onDeliver, onCancel, onDelete }) {
   if (!order) return null;
 
-  // ✅ LOGIQUE ROBUSTE : Odoo peut être lent à dire "invoiced". 
-  // On bloque donc le bouton si invoice_id existe OU si on vient juste de finir le tunnel de paiement !
   const isConfirmed = ['sale', 'done'].includes(order.state);
   const isInvoiced = order.invoice_status === 'invoiced' || !!order.invoice_id || isPaymentDone;
   const isDelivered = order.delivery_status === 'delivered';
+  const isCanceled = order.state === 'cancel';
 
-  // Calcul du pipeline pour faire avancer la ligne bleue
   let currentStep = 1;
   if (isConfirmed) currentStep = 2;
   if (isInvoiced) currentStep = 3;
   if (isDelivered || (order.delivery_status === 'no' && isInvoiced) || order.state === 'done') {
     currentStep = 4;
   }
+  if (isCanceled) currentStep = 0; // Si annulé, on n'a plus de pipeline actif
 
   const steps = [
     { num: 1, label: "Brouillon" },
@@ -46,11 +44,11 @@ export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay
         
         {/* 1. Bouton Valider */}
         <button 
-          onClick={isConfirmed ? undefined : onValidate} 
+          onClick={isConfirmed || isCanceled ? undefined : onValidate} 
           title="Valider la commande" 
-          disabled={isConfirmed}
+          disabled={isConfirmed || isCanceled}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
-            isConfirmed 
+            isConfirmed || isCanceled
               ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
               : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:scale-105'
           }`}
@@ -58,13 +56,13 @@ export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay
           <CheckCircle2 size={18} />
         </button>
         
-        {/* 2. Bouton Paiement & Facturation : BLOQUÉ DIRECTEMENT DÈS LE SUCCÈS */}
+        {/* 2. Bouton Paiement & Facturation */}
         <button 
-          onClick={isInvoiced || !isConfirmed ? undefined : onPay} 
+          onClick={isInvoiced || !isConfirmed || isCanceled ? undefined : onPay} 
           title="Paiement & Facturation" 
-          disabled={isInvoiced || !isConfirmed}
+          disabled={isInvoiced || !isConfirmed || isCanceled}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
-            isInvoiced || !isConfirmed
+            isInvoiced || !isConfirmed || isCanceled
               ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
               : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-105'
           }`}
@@ -85,11 +83,11 @@ export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay
 
         {/* 4. Bouton Valider la Livraison */}
         <button 
-          onClick={isDelivered || !isConfirmed ? undefined : onDeliver} 
+          onClick={isDelivered || !isConfirmed || isCanceled ? undefined : onDeliver} 
           title="Valider la Livraison" 
-          disabled={isDelivered || !isConfirmed}
+          disabled={isDelivered || !isConfirmed || isCanceled}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
-            isDelivered || !isConfirmed
+            isDelivered || !isConfirmed || isCanceled
               ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
               : 'bg-amber-50 text-amber-600 hover:bg-amber-100 hover:scale-105'
           }`}
@@ -98,6 +96,20 @@ export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay
         </button>
 
         <div className="w-px h-6 bg-slate-200 mx-1"></div>
+
+        {/* NOUVEAU : Bouton Annuler */}
+        <button 
+          onClick={isCanceled || order.state === 'done' ? undefined : onCancel} 
+          title="Annuler la commande" 
+          disabled={isCanceled || order.state === 'done'}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
+            isCanceled || order.state === 'done'
+              ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
+              : 'bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-105'
+          }`}
+        >
+          <XCircle size={18} />
+        </button>
 
         {/* Bouton Supprimer */}
         <button 
@@ -110,28 +122,34 @@ export default function OrderStatusBar({ order, isPaymentDone, onValidate, onPay
         
       </div>
 
-      {/* DROITE : Le Pipeline Visuel */}
+
       <div className="flex items-center overflow-x-auto pb-1 xl:pb-0">
-        {steps.map((step, index) => {
-          const isActive = currentStep >= step.num;
-          const isCurrent = currentStep === step.num;
-          
-          return (
-            <div key={step.num} className="flex items-center">
-              <div className={`flex items-center justify-center px-3 py-1 text-sm font-bold transition-colors ${
-                isActive ? 'text-[#4f46ff]' : 'text-slate-300'
-              } ${isCurrent ? 'border-b-2 border-[#4f46ff]' : ''}`}>
-                {step.label}
-              </div>
-              
-              {index < steps.length - 1 && (
-                <div className={`mx-1 transition-colors ${isActive && currentStep > step.num ? 'text-[#4f46ff]' : 'text-slate-200'}`}>
-                  <ChevronRight size={16} />
+        {isCanceled ? (
+           <div className="px-3 py-1 text-sm font-bold text-orange-500 border-b-2 border-orange-500">
+             Commande Annulée
+           </div>
+        ) : (
+          steps.map((step, index) => {
+            const isActive = currentStep >= step.num;
+            const isCurrent = currentStep === step.num;
+            
+            return (
+              <div key={step.num} className="flex items-center">
+                <div className={`flex items-center justify-center px-3 py-1 text-sm font-bold transition-colors ${
+                  isActive ? 'text-[#4f46ff]' : 'text-slate-300'
+                } ${isCurrent ? 'border-b-2 border-[#4f46ff]' : ''}`}>
+                  {step.label}
                 </div>
-              )}
-            </div>
-          );
-        })}
+                
+                {index < steps.length - 1 && (
+                  <div className={`mx-1 transition-colors ${isActive && currentStep > step.num ? 'text-[#4f46ff]' : 'text-slate-200'}`}>
+                    <ChevronRight size={16} />
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

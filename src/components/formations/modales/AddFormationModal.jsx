@@ -46,7 +46,7 @@ export default function AddFormationModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#10174f]/30 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-3xl rounded-[20px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white w-full max-w-3xl rounded-[20px] shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         
         {/* EN-TÊTE */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#ececf5] bg-[#f8f9fc]">
@@ -57,13 +57,14 @@ export default function AddFormationModal({ onClose, onSave }) {
         </div>
 
         {/* CORPS DU FORMULAIRE */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1">
+
           <div className="flex flex-col md:flex-row gap-8">
             
             {/* COLONNE GAUCHE : IMAGE */}
             <div className="w-full md:w-1/3 flex flex-col gap-3">
               <label className="block text-sm font-semibold text-[#10174f]">Image de couverture</label>
-              <div className="relative w-full aspect-square bg-slate-50 rounded-[12px] border-2 border-dashed border-[#ececf5] overflow-hidden flex flex-col items-center justify-center group hover:border-[#4f46ff] transition-colors">
+              <div className="relative w-full aspect-video md:aspect-square bg-slate-50 rounded-[12px] border-2 border-dashed border-[#ececf5] overflow-hidden flex flex-col items-center justify-center group hover:border-[#4f46ff] transition-colors">
                 {formData.image_128 ? (
                   <>
                     <img 

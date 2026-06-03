@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Brush } from "recharts";
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Image as ImageIcon, FileText } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -25,7 +25,6 @@ export default function SalesEvolution({ monthlySales, year }) {
     const pdf = new jsPDF("l", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    
     pdf.setFontSize(16);
     pdf.text(`Rapport des Ventes - ${year}`, 15, 15);
     pdf.addImage(imgData, "PNG", 15, 25, pdfWidth - 30, pdfHeight - (30 * pdfHeight / pdfWidth));
@@ -60,7 +59,6 @@ export default function SalesEvolution({ monthlySales, year }) {
             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value} />
             <Tooltip formatter={(value) => [formatCurrency(value), "Chiffre d'affaires"]} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }} />
             <Area type="monotone" dataKey="value" stroke="#4f46ff" fill="url(#sessionFill)" strokeWidth={3} />
-            <Brush dataKey="month" height={30} stroke="#4f46ff" fill="#f8fafc" tickFormatter={() => ''} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

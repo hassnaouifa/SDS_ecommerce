@@ -9,7 +9,7 @@ import api from "../api/axios";
 const DEPLOYMENT_LABELS = {
   'cloud': 'Cloud',
   'dedicated_server': 'Serveur dédié',
-  'local': 'Locale', // Raccourci pour gagner de la place visuellement
+  'local': 'Locale',
   'not_defined': 'Non défini'
 };
 
@@ -52,7 +52,7 @@ const StatusDropdown = ({ currentStatus, onStatusChange }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-[120px] rounded-xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-slate-100 py-1.5 right-0 sm:left-0">
+        <div className="absolute z-50 mt-1 w-[120px] rounded-xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-slate-100 py-1.5 left-0">
           {statuses.map((status) => (
             <button
               key={status.value}
@@ -143,12 +143,58 @@ export default function SdsNexus() {
         </div>
       </div>
 
-      {/* --- TABLEAU RÉAJUSTÉ POUR NE PAS SE CHEVAUCHER --- */}
-      <div className="bg-white rounded-[16px] border border-[#ececf5] shadow-sm pb-12">
+      {/* CARTES MOBILE (visible uniquement sur mobile) */}
+      <div className="block md:hidden space-y-3">
+        {loading ? (
+          <div className="text-center text-slate-400 py-8">Chargement...</div>
+        ) : filteredDemandes.length > 0 ? (
+          filteredDemandes.map((demande) => (
+            <div key={demande.id} className="bg-white rounded-[16px] border border-[#ececf5] p-4 shadow-sm relative overflow-visible">
+
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <p className="text-[14px] font-bold text-[#10174f]">{demande.name}</p>
+                  <p className="text-[12px] text-slate-500 mt-0.5">{demande.company_name}</p>
+                </div>
+                <StatusDropdown
+                  currentStatus={demande.state}
+                  onStatusChange={(newStatus) => handleStatusChange(demande.id, newStatus)}
+                />
+              </div>
+              <div className="space-y-1.5 text-[12px] text-slate-500">
+                <div className="flex items-center gap-2">
+                  <Calendar size={13} className="shrink-0" />
+                  <span>{demande.date.split(',')[0]}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail size={13} className="shrink-0" />
+                  <span className="truncate">{demande.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone size={13} className="shrink-0" />
+                  <span>{demande.phone}</span>
+                </div>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => { setSelectedDemande(demande); setIsModalOpen(true); }}
+                  className="text-[#4f46ff] bg-[#f1efff] px-3 py-1.5 rounded-[8px] text-[12px] font-semibold flex items-center gap-1.5 hover:bg-[#4f46ff] hover:text-white transition-colors"
+                >
+                  <Eye size={14} /> Voir détails
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-slate-500 py-12">Aucune demande de démonstration.</div>
+        )}
+      </div>
+
+      {/* TABLEAU DESKTOP (caché sur mobile) */}
+      <div className="hidden md:block bg-white rounded-[16px] border border-[#ececf5] shadow-sm pb-12">
         <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="bg-slate-50/50 border-b border-[#ececf5]">
-              {/* Ajustement ultra-précis des pourcentages */}
               <th className="w-[11%] px-3 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
               <th className="w-[16%] px-3 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nom Complet</th>
               <th className="w-[14%] px-3 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Entreprise</th>
