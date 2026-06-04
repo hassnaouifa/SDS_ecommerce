@@ -43,23 +43,30 @@ export default function NotificationBell() {
     navigate("/discuss");
   };
 
-  const handleNotificationClick = (clickedMsg) => {
-    // 1. On marque la notification comme lue localement (enlève le cercle vert)
+const handleNotificationClick = (clickedMsg) => {
+    // 1. On marque la notification comme lue localement
     setMessages(prevMessages => 
       prevMessages.map(msg => 
         msg.id === clickedMsg.id ? { ...msg, unread: false } : msg
       )
     );
 
-    // 2. On décrémente le compteur global si le message n'était pas encore lu
+    // 2. On décrémente le compteur
     if (clickedMsg.unread) {
       setCount(prevCount => Math.max(0, prevCount - 1));
     }
 
     setIsOpen(false);
     setShowAll(false);
-    // On navigue vers la page globale des messages en passant l'ID caché
-    navigate("/discuss", { state: { targetChannelId: clickedMsg.target_id } });
+
+    // 3. LA MAGIE EST ICI : Redirection conditionnelle
+    if (clickedMsg.model === 'sale.order' && clickedMsg.order_id) {
+      // Si c'est une commande, on go sur la page des commandes avec l'ID en state
+      navigate("/orders", { state: { selectedOrderId: clickedMsg.order_id } });
+    } else {
+      // Sinon, comportement normal vers les chats
+      navigate("/discuss", { state: { targetChannelId: clickedMsg.target_id } });
+    }
   };
 
   const getFilteredMessages = () => {

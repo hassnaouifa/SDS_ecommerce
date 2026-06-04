@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import { formatCurrency } from "../utils/formatters";
+import { useLocation } from "react-router-dom";
 
 // Composants UI
 import StatusBadge from "../components/ui/StatusBadge";
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 
 export default function Orders() {
+  const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -28,6 +30,7 @@ export default function Orders() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  
 
   const [showAddLineModal, setShowAddLineModal] = useState(false);
   const [showAddFeeModal, setShowAddFeeModal] = useState(false);
@@ -227,6 +230,15 @@ const handleValidateDelivery = async () => {
   useEffect(() => { loadOrders(); }, []);
   useEffect(() => { if (selectedOrderId) loadOrderDetails(selectedOrderId); else setSelectedOrder(null); }, [selectedOrderId]);
   useEffect(() => { if (showAddLineModal) searchProducts(); }, [showAddLineModal]);
+// Écoute si on arrive depuis une notification avec un orderId précis
+  useEffect(() => {
+    if (location.state?.selectedOrderId) {
+      setSelectedOrderId(location.state.selectedOrderId);
+      // Nettoie l'historique pour éviter que ça boucle si on rafraîchit la page
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.selectedOrderId]);
+
 
   const displayedOrder = selectedOrder || orders.find((o) => Number(o.id) === Number(selectedOrderId)) || null;
 
@@ -354,7 +366,15 @@ const handleValidateDelivery = async () => {
             onCancel={handleCancelOrder}
             onDelete={handleDeleteOrder} 
           />
-              <div className="bg-white rounded-[24px] border border-[#ececf5] p-5">
+              <div className="bg-white rounded-[24px] border border-[#ececf5] p-5 relative overflow-hidden">
+
+
+                {/* 2. On colle notre badge juste en dessous de l'ouverture de la div */}
+{displayedOrder?.client_received && (
+              <div className="absolute top-6 -right-10 w-40 bg-gradient-to-r from-[#4ade80] to-[#16a34a] text-white text-xs font-bold py-1.5 text-center transform rotate-45 shadow-md uppercase tracking-wide z-10 pointer-events-none">
+                Bien reçu
+              </div>
+            )}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-bold text-[#10174f]">Détails de la commande</h2>

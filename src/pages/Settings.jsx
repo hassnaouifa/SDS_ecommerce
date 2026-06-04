@@ -44,12 +44,12 @@ export default function Settings() {
       setMessage("");
       
       const response = await api.post("/api/settings", { params: {} });
-      console.log("Réponse Odoo:", response.data); // 👈 Regarde ta console F12 !
+      console.log("Réponse :", response.data); // 👈 Regarde ta console F12 !
 
       // Gestion des erreurs natives Odoo
       if (response.data?.error) {
         const errorMsg = response.data.error.data?.message || response.data.error.message;
-        setMessage(`Erreur système Odoo: ${errorMsg}`);
+        setMessage(`Erreur système : ${errorMsg}`);
         setLoading(false);
         return;
       }
@@ -133,7 +133,7 @@ export default function Settings() {
           </div>
           <div>
             <h1 className="text-[32px] font-bold text-[#10174f]">Paramètres</h1>
-            <p className="text-slate-400 text-sm mt-1">Configuration synchronisée avec Odoo</p>
+            <p className="text-slate-400 text-sm mt-1">Configuration  </p>
           </div>
         </div>
 

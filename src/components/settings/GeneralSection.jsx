@@ -4,7 +4,7 @@ import { Card, InputField, SelectField } from "../SettingsUI";
 export default function GeneralSection({ form, updateField }) {
   return (
     <div className="space-y-5">
-      <Card title="Informations de la Société (Odoo)" subtitle="Ces informations modifient directement la fiche société dans Odoo">
+      <Card title="Informations de la Société" subtitle="Configurez les paramètres généraux du site">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField 
             label="Nom de la société" 
