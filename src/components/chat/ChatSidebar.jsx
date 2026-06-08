@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaRegEdit, FaSearch, FaUsers, FaUser, FaStar, FaTimes, FaUserPlus, FaInbox } from 'react-icons/fa';
 
-const ODOO_BASE_URL = 'http://localhost:8069';
+const ODOO_BASE_URL = import.meta.env.VITE_ODOO_BASE_URL || '';
 
 // 👈 On s'assure de bien recevoir activeView et onShowInbox dans les props
 const ChatSidebar = ({ activeView, activeChannel, onSelectChat, onShowStarred, onShowInbox, targetChannelId }) => {

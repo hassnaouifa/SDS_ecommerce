@@ -3,7 +3,7 @@ import {
   FaTimes, FaImage, FaSearch, FaPhoneAlt, FaVideo, FaSpinner 
 } from 'react-icons/fa';
 
-const ODOO_BASE_URL = 'http://localhost:8069';
+const ODOO_BASE_URL = import.meta.env.VITE_ODOO_BASE_URL || '';
 
 // 🎨 Ajout de la liste des couleurs directement ici pour éviter l'erreur d'import !
 const THEME_COLORS = [

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaInbox, FaSearch, FaRobot, FaCheckDouble, FaSpinner } from 'react-icons/fa';
 import api from '../../api/axios';
 
-const ODOO_BASE_URL = 'http://localhost:8069';
+const ODOO_BASE_URL = import.meta.env.VITE_ODOO_BASE_URL || '';
 
 export default function InboxView() {
   const [messages, setMessages] = useState([]);

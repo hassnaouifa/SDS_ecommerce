@@ -5,7 +5,7 @@ import {
   FaStar, FaTrash, FaEdit, FaTimes
 } from 'react-icons/fa';
 
-const ODOO_BASE_URL = 'http://localhost:8069';
+const ODOO_BASE_URL = import.meta.env.VITE_ODOO_BASE_URL || '';
 const EMOJI_LIST = ['😀', '😂', '😍', '🙏', '👍', '🔥', '❤️', '🎉', '😊', '😎'];
 const NOTIFICATION_SOUND_URL = 'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3';
 

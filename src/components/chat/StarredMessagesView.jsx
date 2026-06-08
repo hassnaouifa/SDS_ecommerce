@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar, FaSpinner } from 'react-icons/fa';
 
-const ODOO_BASE_URL = 'http://localhost:8069';
+const ODOO_BASE_URL = import.meta.env.VITE_ODOO_BASE_URL || '';
 
 const StarredMessagesView = () => {
   const [starredMessages, setStarredMessages] = useState([]);
