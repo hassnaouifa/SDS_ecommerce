@@ -5,7 +5,8 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 
-const ODOO_BASE = import.meta.env.VITE_ODOO_BASE_URL || 'http://localhost:8069';
+
+const ODOO_BASE_URL = import.meta.env.VITE_ODOO_BASE_URL || '';
 
 async function odooCall(model, method, args = [], kwargs = {}) {
   const res = await api.post('/web/dataset/call_kw', {
@@ -215,7 +216,7 @@ export default function PurchaseOrders() {
 
   // ── Téléchargements — ID Odoo réel passé directement ──
   const handleDownloadPDF = (id, name) => {
-    const url = `${ODOO_BASE}/api/purchase/download-pdf/${id}?t=${Date.now()}`;
+    const url = `${ODOO_BASE_URL}/api/purchase/download-pdf/${id}?t=${Date.now()}`;
     const link = document.createElement('a');
     link.href = url;
     link.download = `BC_${name}.pdf`;
@@ -226,7 +227,7 @@ export default function PurchaseOrders() {
   };
 
   const handleDownloadWord = (id, name) => {
-    const url = `${ODOO_BASE}/api/purchase/download-word/${id}?t=${Date.now()}`;
+    const url = `${ODOO_BASE_URL}/api/purchase/download-word/${id}?t=${Date.now()}`;
     const link = document.createElement('a');
     link.href = url;
     link.download = `BC_${name}.docx`;
