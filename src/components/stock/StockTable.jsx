@@ -1,6 +1,9 @@
 import React from "react";
 import { Pencil, Eye } from "lucide-react";
 
+
+
+const ODOO_BASE = import.meta.env.VITE_ODOO_BASE_URL || '';
 // --- FORMATTEUR ---
 export function formatCurrency(value) {
   return new Intl.NumberFormat("fr-MA", {
@@ -70,7 +73,7 @@ export default function StockTable({ products, onEdit, onView }) {
                   <div className="flex items-center gap-3">
                     {product.image_url ? (
                       <img
-                        src={`http://localhost:8069${product.image_url}`}
+                        src={`${ODOO_BASE}${product.image_url}`}
                         alt={product.name}
                         className="w-10 h-10 rounded-xl object-cover bg-white border border-[#ececf5] shadow-sm shrink-0"
                       />

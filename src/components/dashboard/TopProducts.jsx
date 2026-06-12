@@ -1,6 +1,8 @@
 import React from "react";
 import { formatCurrency } from "../../utils/formatters";
 
+const ODOO_BASE = import.meta.env.VITE_ODOO_BASE_URL || '';
+
 export default function TopProducts({ products }) {
   return (
     <div className="bg-white rounded-[24px] border border-[#ececf5] p-5">
@@ -12,7 +14,7 @@ export default function TopProducts({ products }) {
         {products.length > 0 ? (
           products.map((product, idx) => (
             <div key={idx} className="flex items-center gap-3">
-              <img src={`http://localhost:8069${product.image_url}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover shrink-0" />
+              <img src={`${ODOO_BASE}${product.image_url}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[#10174f] font-medium text-sm truncate" title={product.name}>{product.name}</p>
                 <p className="text-slate-400 text-xs mt-0.5">Qté : {product.qty}</p>
