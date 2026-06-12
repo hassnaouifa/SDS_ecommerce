@@ -120,8 +120,8 @@ export default function PurchaseOrders() {
   const [lines, setLines] = useState([
     { product_name: '', qty: 1, price_unit: 0, description: '' }
   ]);
-  const [saving, setSaving]         = useState(false);
-  const [formError, setFormError]   = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [formError, setFormError]     = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [actionLoading, setActionLoading] = useState({});
@@ -164,41 +164,41 @@ export default function PurchaseOrders() {
   );
 
   // ── Créer BC ──
- const handleCreatePO = async () => {
-  if (!form.partner_id) { setFormError('Sélectionnez un fournisseur.'); return; }
-  if (lines.some(l => !l.product_name.trim())) {
-    setFormError('Chaque ligne doit avoir un nom de produit.');
-    return;
-  }
-  setSaving(true); setFormError(''); setFormSuccess('');
-  try {
-    const res = await api.post('/api/purchase/create', {
-      params: {
-        partner_id: parseInt(form.partner_id),
-        lines: lines.map(l => ({
-          product_name: l.product_name,
-          description: l.description,
-          qty: parseFloat(l.qty),
-          price_unit: parseFloat(l.price_unit),
-        })),
-      }
-    });
-
-    if (!res.data.result?.success) {
-      throw new Error(res.data.result?.error || 'Erreur création');
+  const handleCreatePO = async () => {
+    if (!form.partner_id) { setFormError('Sélectionnez un fournisseur.'); return; }
+    if (lines.some(l => !l.product_name.trim())) {
+      setFormError('Chaque ligne doit avoir un nom de produit.');
+      return;
     }
+    setSaving(true); setFormError(''); setFormSuccess('');
+    try {
+      const res = await api.post('/api/purchase/create', {
+        params: {
+          partner_id: parseInt(form.partner_id),
+          lines: lines.map(l => ({
+            product_name: l.product_name,
+            description:  l.description,
+            qty:          parseFloat(l.qty),
+            price_unit:   parseFloat(l.price_unit),
+          })),
+        }
+      });
 
-    setFormSuccess('Bon de commande créé avec succès !');
-    setForm({ partner_id: '', date_order: new Date().toISOString().slice(0, 10), notes: '' });
-    setLines([{ product_name: '', qty: 1, price_unit: 0, description: '' }]);
-    await fetchAll();
-    setTimeout(() => { setTab('list'); setFormSuccess(''); }, 1500);
-  } catch (e) {
-    setFormError(e.message);
-  } finally {
-    setSaving(false);
-  }
-};
+      if (!res.data.result?.success) {
+        throw new Error(res.data.result?.error || 'Erreur création');
+      }
+
+      setFormSuccess('Bon de commande créé avec succès !');
+      setForm({ partner_id: '', date_order: new Date().toISOString().slice(0, 10), notes: '' });
+      setLines([{ product_name: '', qty: 1, price_unit: 0, description: '' }]);
+      await fetchAll();
+      setTimeout(() => { setTab('list'); setFormSuccess(''); }, 1500);
+    } catch (e) {
+      setFormError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // ── Confirmer BC ──
   const handleConfirm = async (id) => {
@@ -213,10 +213,11 @@ export default function PurchaseOrders() {
     }
   };
 
-  // ── Téléchargements ──
+  // ── Téléchargements — ID Odoo réel passé directement ──
   const handleDownloadPDF = (id, name) => {
+    const url = `${ODOO_BASE}/api/purchase/download-pdf/${id}?t=${Date.now()}`;
     const link = document.createElement('a');
-    link.href = `${ODOO_BASE}/api/purchase/download-pdf/${id}`;
+    link.href = url;
     link.download = `BC_${name}.pdf`;
     link.target = '_blank';
     document.body.appendChild(link);
@@ -225,8 +226,9 @@ export default function PurchaseOrders() {
   };
 
   const handleDownloadWord = (id, name) => {
+    const url = `${ODOO_BASE}/api/purchase/download-word/${id}?t=${Date.now()}`;
     const link = document.createElement('a');
-    link.href = `${ODOO_BASE}/api/purchase/download-word/${id}`;
+    link.href = url;
     link.download = `BC_${name}.docx`;
     link.target = '_blank';
     document.body.appendChild(link);
@@ -323,7 +325,13 @@ export default function PurchaseOrders() {
                   {filtered.map((o, i) => (
                     <tr key={o.id}
                       className={`border-b border-[#ececf5] hover:bg-slate-50/60 transition-colors ${i % 2 !== 0 ? 'bg-slate-50/30' : ''}`}>
-                      <td className="px-4 py-3 text-[13px] font-bold text-[#4f46ff]">{o.name}</td>
+
+                      {/* Référence + ID Odoo réel pour debug */}
+                      <td className="px-4 py-3 text-[13px] font-bold text-[#4f46ff]">
+                        {o.name}
+                        <span className="ml-1 text-slate-300 text-[10px] font-normal">#{o.id}</span>
+                      </td>
+
                       <td className="px-4 py-3 text-[13px] text-[#10174f]">{o.partner_id?.[1] || '—'}</td>
                       <td className="px-4 py-3 text-[13px] text-slate-500">
                         {o.date_order ? new Date(o.date_order).toLocaleDateString('fr-MA') : '—'}
@@ -448,7 +456,6 @@ export default function PurchaseOrders() {
                 <tbody>
                   {lines.map((line, i) => (
                     <tr key={i} className="border-b border-[#ececf5] last:border-0">
-                      {/* ── Nom libre du produit ── */}
                       <td className="px-3 py-2">
                         <input
                           value={line.product_name}
