@@ -15,6 +15,8 @@ import Formations from "../pages/Formations";
 import FormationsDemande from '../pages/FormationsDemande';
 import SdsNexus from "../pages/SdsNexus";
 import SearchPage from "../pages/SearchPage";
+import PurchaseOrders from "../pages/PurchaseOrders";
+import Suppliers from "../pages/Suppliers";
 function Placeholder({ title }) {
   return (
     <div className="bg-white rounded-[24px] border border-[#ececf5] p-6">
@@ -51,6 +53,8 @@ export default function AppRouter() {
           <Route path="formations_demande" element={<FormationsDemande />} />
           <Route path="sdsNexus" element={<SdsNexus />} />
           <Route path="search" element={<SearchPage />} />
+          <Route path="purchase-orders" element={<PurchaseOrders />} />
+          <Route path="suppliers" element={<Suppliers />} />
         </Route>
       </Routes>
     </BrowserRouter>

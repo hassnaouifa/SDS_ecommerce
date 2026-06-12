@@ -3,11 +3,11 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Home, ShoppingBag, Package, Users, Boxes, BarChart3,
   MessageCircle, Receipt, Settings, LogOut, ShieldCheck,
-  BookOpen, Network, ChevronDown, ShoppingCart, X, Menu, Search
+  BookOpen, Network, ChevronDown, ShoppingCart, X, Menu,
+  Truck, ClipboardList
 } from "lucide-react";
 import api from "../api/axios";
 
-// --- COMPOSANT MENU ITEM CLASSIQUE ---
 function MenuItem({ to, label, icon: Icon, badge, onClick }) {
   return (
     <NavLink
@@ -38,7 +38,6 @@ function MenuItem({ to, label, icon: Icon, badge, onClick }) {
   );
 }
 
-// --- MENU DÉROULANT ---
 function DropdownMenu({ label, icon: Icon, subItems, onSubItemClick }) {
   const location = useLocation();
   const isActiveChild = subItems.some(item => location.pathname.startsWith(item.to));
@@ -102,11 +101,9 @@ function DropdownMenu({ label, icon: Icon, subItems, onSubItemClick }) {
   );
 }
 
-// --- CONTENU DU MENU (partagé desktop + mobile) ---
 function SidebarContent({ totalUnread, onClose }) {
   return (
     <>
-      {/* LOGO */}
       <div className="flex items-center gap-3 px-2 mb-8">
         <div className="w-10 h-10 rounded-[12px] bg-[#4f46ff] flex items-center justify-center text-white shadow-sm shrink-0">
           <ShieldCheck size={22} strokeWidth={2.5} />
@@ -117,7 +114,6 @@ function SidebarContent({ totalUnread, onClose }) {
         </div>
       </div>
 
-      {/* MENU */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
         <div className="space-y-1">
           <MenuItem to="/" label="Tableau de bord" icon={Home} onClick={onClose} />
@@ -128,6 +124,17 @@ function SidebarContent({ totalUnread, onClose }) {
             subItems={[
               { to: "/orders", label: "Cmd. Produits", icon: ShoppingCart },
               { to: "/formations_demande", label: "Réservations", icon: BookOpen }
+            ]}
+            onSubItemClick={onClose}
+          />
+
+          {/* ===== NOUVEAU : ACHATS ===== */}
+          <DropdownMenu
+            label="Achats"
+            icon={Truck}
+            subItems={[
+              { to: "/suppliers", label: "Fournisseurs", icon: Users },
+              { to: "/purchase-orders", label: "Bons de commande", icon: ClipboardList }
             ]}
             onSubItemClick={onClose}
           />
@@ -155,7 +162,6 @@ function SidebarContent({ totalUnread, onClose }) {
   );
 }
 
-// --- COMPOSANT PRINCIPAL SIDEBAR ---
 export default function Sidebar() {
   const navigate = useNavigate();
   const [totalUnread, setTotalUnread] = useState(0);
@@ -180,7 +186,6 @@ export default function Sidebar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Bloquer le scroll body quand le drawer est ouvert
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden';
@@ -192,12 +197,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ===== SIDEBAR DESKTOP (inchangée) ===== */}
       <aside className="hidden lg:flex flex-col w-[260px] h-screen bg-white border-r border-[#ececf5] rounded-r-[24px] shadow-[4px_0_24px_rgba(0,0,0,0.02)] px-4 py-6 sticky top-0 shrink-0">
         <SidebarContent totalUnread={totalUnread} onClose={() => {}} />
       </aside>
 
-      {/* ===== BOUTON HAMBURGER MOBILE ===== */}
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-white rounded-[12px] border border-[#ececf5] shadow-sm flex items-center justify-center text-[#10174f]"
@@ -205,7 +208,6 @@ export default function Sidebar() {
         <Menu size={20} strokeWidth={2} />
       </button>
 
-      {/* ===== OVERLAY ===== */}
       {mobileOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
@@ -213,24 +215,18 @@ export default function Sidebar() {
         />
       )}
 
-      {/* ===== DRAWER MOBILE ===== */}
       <div
         className={`lg:hidden fixed top-0 left-0 z-50 h-full w-[280px] bg-white shadow-2xl flex flex-col px-4 py-6 transition-transform duration-300 ease-in-out ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Bouton fermer */}
         <button
           onClick={() => setMobileOpen(false)}
           className="absolute top-4 right-4 w-9 h-9 rounded-[10px] border border-[#ececf5] flex items-center justify-center text-slate-400 hover:text-[#10174f] transition-colors"
         >
           <X size={18} />
         </button>
-
-        <SidebarContent
-          totalUnread={totalUnread}
-          onClose={() => setMobileOpen(false)}
-        />
+        <SidebarContent totalUnread={totalUnread} onClose={() => setMobileOpen(false)} />
       </div>
     </>
   );
