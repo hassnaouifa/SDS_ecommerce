@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Search, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Search, ChevronLeft, FileText } from "lucide-react";
+
 import api from "../api/axios";
 
 import ProfileModal from "./settings/ProfileModal";
 import NotificationBell from "./notifications/NotificationBell";
 import UserMenu from "./ui/UserMenu";
-
+import QuoteModal from "./quotes/QuoteModal";
 function formatCurrency(value) {
   return new Intl.NumberFormat("fr-MA", {
     style: "currency",
@@ -36,7 +37,7 @@ export default function Topbar() {
     };
     loadTopbar();
   }, []);
-
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const handleSearch = (e) => {
     if (e.key === "Enter" && searchQuery.trim() !== "") {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -74,6 +75,25 @@ export default function Topbar() {
         {/* --- PARTIE DROITE --- */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
 
+{/* Bouton Devis */}
+<button
+  onClick={() => setIsQuoteModalOpen(true)}
+  className="hidden sm:flex items-center gap-2 h-10 px-4 rounded-2xl bg-[#4f46ff] text-white text-sm font-semibold hover:bg-[#3d36e0] transition-colors shrink-0"
+>
+  <FileText size={16} />
+  Nouveau devis
+</button>
+
+{/* Version icône seule pour mobile */}
+<button
+  onClick={() => setIsQuoteModalOpen(true)}
+  className="sm:hidden flex w-10 h-10 rounded-2xl bg-[#4f46ff] text-white items-center justify-center shrink-0"
+>
+  <FileText size={18} />
+</button>
+
+
+
           {/* Notifications */}
           <NotificationBell />
 
@@ -92,6 +112,12 @@ export default function Topbar() {
           />
         </div>
       </div>
+
+<QuoteModal
+  isOpen={isQuoteModalOpen}
+  onClose={() => setIsQuoteModalOpen(false)}
+/>
+
 
       <ProfileModal
         isOpen={isProfileModalOpen}
