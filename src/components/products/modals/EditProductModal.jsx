@@ -129,6 +129,42 @@ export default function EditProductModal({ open, onClose, onEdit, actionLoading,
             <input type="text" value={formData.default_code} onChange={e => setFormData({...formData, default_code: e.target.value})} className="w-full h-12 rounded-[18px] bg-[#fafafe] border border-[#ececf5] px-4 outline-none" />
           </div>
 
+          {/* 🌟 NOUVEAU : Prix de vente */}
+          <div>
+            <label className="text-xs font-medium text-slate-400 ml-2 block">Prix de vente *</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.price}
+              onChange={e => setFormData({...formData, price: e.target.value})}
+              className="w-full h-12 rounded-[18px] bg-[#fafafe] border border-[#ececf5] px-4 outline-none"
+            />
+          </div>
+
+          {/* 🌟 NOUVEAU : Prix barré (comparaison) */}
+          <div>
+            <label className="text-xs font-medium text-slate-400 ml-2 block">Prix barré (comparaison)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.compare_price}
+              onChange={e => setFormData({...formData, compare_price: e.target.value})}
+              className="w-full h-12 rounded-[18px] bg-[#fafafe] border border-[#ececf5] px-4 outline-none"
+            />
+          </div>
+
+          {/* 🌟 NOUVEAU : Coût d'achat */}
+          <div>
+            <label className="text-xs font-medium text-slate-400 ml-2 block">Coût d'achat</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.cost}
+              onChange={e => setFormData({...formData, cost: e.target.value})}
+              className="w-full h-12 rounded-[18px] bg-[#fafafe] border border-[#ececf5] px-4 outline-none"
+            />
+          </div>
+
           <div className="md:col-span-2">
             <label className="text-xs font-medium text-slate-400 ml-2 block">Description E-commerce</label>
             <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full h-24 rounded-[18px] bg-[#fafafe] border border-[#ececf5] p-4 outline-none resize-none"></textarea>
